@@ -1,0 +1,308 @@
+Estrutura do Programa
+1. Definição das Structs
+Vamos criar algumas structs que representem os componentes do jogo:
+
+c
+Copiar código
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define TAM 3
+#define MAX_FASES 5
+#define MAX_NOME 50
+
+typedef struct {
+    char nome[MAX_NOME];
+    char simbolo;
+} Jogador;
+
+typedef struct {
+    char **tabuleiro;
+    int jogadas;
+    int tamanho;
+} Jogo;
+
+typedef struct {
+    char *nomeArquivo;
+    int faseID;
+} Fase;
+
+typedef struct {
+    int vitóriasJogador1;
+    int vitóriasJogador2;
+    int empates;
+} Estatisticas;
+2. Alocação Dinâmica
+Vamos implementar a alocação dinâmica, especialmente para o tabuleiro e as fases:
+
+c
+Copiar código
+void inicializarTabuleiro(Jogo *jogo) {
+    jogo->tabuleiro = malloc(TAM * sizeof(char *));
+    for (int i = 0; i < TAM; i++) {
+        jogo->tabuleiro[i] = malloc(TAM * sizeof(char));
+        for (int j = 0; j < TAM; j++) {
+            jogo->tabuleiro[i][j] = ' ';
+        }
+    }
+    jogo->jogadas = 0;
+}
+
+void liberarTabuleiro(Jogo *jogo) {
+    for (int i = 0; i < TAM; i++) {
+        free(jogo->tabuleiro[i]);
+    }
+    free(jogo->tabuleiro);
+}
+3. Manipulação de Arquivos
+Vamos carregar as fases de arquivos de texto e salvar as estatísticas em um arquivo binário:
+
+c
+Copiar código
+void carregarFase(Fase *fase) {
+    FILE *file = fopen(fase->nomeArquivo, "r");
+    if (!file) {
+        perror("Erro ao abrir arquivo da fase");
+        return;
+    }
+    // Aqui você pode carregar a fase a partir do arquivo
+    fclose(file);
+}
+
+void salvarEstatisticas(Estatisticas *estatisticas) {
+    FILE *file = fopen("estatisticas.bin", "wb");
+    if (file) {
+        fwrite(estatisticas, sizeof(Estatisticas), 1, file);
+        fclose(file);
+    }
+}
+
+void carregarEstatisticas(Estatisticas *estatisticas) {
+    FILE *file = fopen("estatisticas.bin", "rb");
+    if (file) {
+        fread(estatisticas, sizeof(Estatisticas), 1, file);
+        fclose(file);
+    }
+}
+4. Tela Principal e Menus
+Implementamos a tela principal com opções de iniciar o jogo e visualizar as estatísticas:
+
+c
+Copiar código
+void menuPrincipal() {
+    int opcao;
+    Estatisticas estatisticas = {0, 0, 0};
+
+    carregarEstatisticas(&estatisticas);
+
+    do {
+        printf("1. Iniciar Jogo\n");
+        printf("2. Estatísticas\n");
+        printf("3. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                // iniciarJogo(&estatisticas);
+                break;
+            case 2:
+                printf("Vitórias Jogador 1: %d\n", estatisticas.vitóriasJogador1);
+                printf("Vitórias Jogador 2: %d\n", estatisticas.vitóriasJogador2);
+                printf("Empates: %d\n", estatisticas.empates);
+                break;
+            case 3:
+                salvarEstatisticas(&estatisticas);
+                printf("Saindo do jogo...\n");
+                break;
+            default:
+                printf("Opção inválida! Tente novamente.\n");
+        }
+    } while (opcao != 3);
+}
+5. Implementação do Jogo
+A lógica do jogo deve ser mantida, mas você deve integrá-la à nova estrutura. Aqui está uma abordagem simplificada:
+
+c
+Copiar código
+void jogar(Fase *fase, Jogador *jogador1, Jogador *jogador2, Estatisticas *estatisticas) {
+    Jogo jogo;
+    inicializarTabuleiro(&jogo);
+    
+    // Lógica do jogo aqui, incluindo verificação de vitórias e atualizações nas estatísticas
+
+    liberarTabuleiro(&jogo);
+}
+6. Função Main
+Por fim, conectamos tudo na função main:
+
+c
+Copiar código
+int main() {
+    Jogador jogador1, jogador2;
+    Fase fases[MAX_FASES] = {
+        {"fase1.txt", 1},
+        {"fase2.txt", 2},
+        {"fase3.txt", 3},
+        {"fase4.txt", 4},
+        {"fase5.txt", 5}
+    };
+
+    printf("Jogador 1, digite seu nome: ");
+    fgets(jogador1.nome, sizeof(jogador1.nome), stdin);
+    jogador1.simbolo = 'x';
+
+    printf("Jogador 2, digite seu nome: ");
+    fgets(jogador2.nome, sizeof(jogador2.nome), stdin);
+    jogador2.simbolo = '0';
+
+    menuPrincipal();
+
+    return 0;
+}
+Considerações Finais
+Simplicidade e Clareza: As funções são curtas e se concentram em uma única tarefa.
+Nomes Claros: Nomes de funções e variáveis são descritivos.
+Indentaçã Consistente: O código é indentado consistentemente.
+Evitar Repetição: Funções reutilizáveis para carregar e salvar dados.
+
+
+
+
+esse é o código do jogo 
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TAM 3
+
+typedef struct {
+    char nome[50];
+    char simbolo;
+} Jogador;
+
+typedef struct {
+    char tabuleiro[TAM][TAM];
+    int jogadas;
+} Jogo;
+
+void inicializarMatriz(Jogo *jogo) {
+    int i, j;
+    for (i = 0; i < TAM; i++) {
+        for(j = 0; j < TAM; j++) {
+            jogo->tabuleiro[i][j] = ' ';
+        }
+    }
+    jogo->jogadas = 0;
+}
+
+int eValido(char letra) {
+    return (letra == 'x' || letra == '0');
+}
+
+int coordenadaEhValida(int x, int y) {
+    return (x >= 0 && x < TAM && y >= 0 && y < TAM);
+}
+
+int posicaoVazia(Jogo *jogo, int x, int y) {
+    return (jogo->tabuleiro[x][y] != 'x' && jogo->tabuleiro[x][y] != '0');
+}
+
+int ganhouLinhas(Jogo *jogo) {
+    int i;
+    for(i = 0; i < TAM; i++) {
+        if(eValido(jogo->tabuleiro[i][0]) && 
+           jogo->tabuleiro[i][0] == jogo->tabuleiro[i][1] && 
+           jogo->tabuleiro[i][1] == jogo->tabuleiro[i][2]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int ganhouColunas(Jogo *jogo) {
+    int i;
+    for(i = 0; i < TAM; i++) {
+        if(eValido(jogo->tabuleiro[0][i]) && 
+           jogo->tabuleiro[0][i] == jogo->tabuleiro[1][i] && 
+           jogo->tabuleiro[1][i] == jogo->tabuleiro[2][i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int ganhouDiagonal(Jogo *jogo) {
+    return (eValido(jogo->tabuleiro[0][0]) && 
+            jogo->tabuleiro[0][0] == jogo->tabuleiro[1][1] && 
+            jogo->tabuleiro[1][1] == jogo->tabuleiro[2][2]) ||
+           (eValido(jogo->tabuleiro[0][TAM-1]) && 
+            jogo->tabuleiro[0][TAM-1] == jogo->tabuleiro[1][TAM-2] && 
+            jogo->tabuleiro[1][TAM-2] == jogo->tabuleiro[2][TAM-3]);
+}
+
+void imprimir(Jogo *jogo) {
+    int lin, col;
+    printf("\n\t    0  1  2\n");
+    for(lin = 0; lin < TAM; lin++) {
+        printf("\t%d ", lin);
+        for(col = 0; col < TAM; col++) {
+            printf(" %c", jogo->tabuleiro[lin][col]);
+            if(col < TAM - 1) printf(" |");
+        }
+        if(lin < TAM - 1) printf("\n\t   ---------\n");
+    }
+}
+
+void jogar(Jogador *jogador1, Jogador *jogador2) {
+    Jogo jogo;
+    inicializarMatriz(&jogo);
+    int ordem = 1, ganhou = 0, x, y;
+
+    while(ganhou == 0 && jogo.jogadas < 9) {
+        imprimir(&jogo);
+        printf("\n%s, digite a coordenada que deseja jogar: ", ordem == 1 ? jogador1->nome : jogador2->nome);
+        scanf("%d%d", &x, &y);
+
+        if(coordenadaEhValida(x, y) && posicaoVazia(&jogo, x, y)) {
+            jogo.tabuleiro[x][y] = (ordem == 1) ? jogador1->simbolo : jogador2->simbolo;
+            jogo.jogadas++;
+            ordem = 3 - ordem;  // Alterna entre 1 e 2
+            ganhou += ganhouLinhas(&jogo);
+            ganhou += ganhouColunas(&jogo);
+            ganhou += ganhouDiagonal(&jogo);
+        } else {
+            printf("Coordenada inválida! Tente novamente.\n");
+        }
+    }
+
+    imprimir(&jogo);
+    if(ganhou != 0) {
+        printf("\nParabéns, %s venceu!\n", (ordem == 1) ? jogador2->nome : jogador1->nome);
+    } else {
+        printf("\nQue feio. Ninguém venceu!\n\n");
+    }
+}
+
+int main() {
+    Jogador jogador1, jogador2;
+
+    printf("Jogador 1, digite seu nome: ");
+    fgets(jogador1.nome, sizeof(jogador1.nome), stdin);
+    jogador1.simbolo = 'x';
+
+    printf("Jogador 2, digite seu nome: ");
+    fgets(jogador2.nome, sizeof(jogador2.nome), stdin);
+    jogador2.simbolo = '0';
+
+    int op;
+    do {
+        jogar(&jogador1, &jogador2);
+        printf("Deseja jogar novamente?\n1 - Sim\n2 - Não\n");
+        scanf("%d", &op);
+    } while(op == 1);
+
+    return 0;
+}
